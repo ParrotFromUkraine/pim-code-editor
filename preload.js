@@ -114,7 +114,7 @@ function createFileItem(file, depth) {
         
         const icon = document.createElement('span');
         icon.className = 'file-item-icon';
-        icon.textContent = '📁';
+        icon.textContent = '/';
         
         const name = document.createElement('span');
         name.className = 'file-item-name';
@@ -215,8 +215,9 @@ async function openFileFromExplorer(filePath, fileName) {
     if (result.success) {
         editor.setValue(result.content);
         detectLanguageFromFileName(fileName);
-        updateStatusMessage(`󰆓 Loaded: ${fileName}`);
+        updateStatusMessage(`Loaded: ${fileName}`);
         updateFileName();
+        updateActiveFileNameInSidebar();
         
         // Update active state in file tree
         document.querySelectorAll('.file-item.active').forEach(el => el.classList.remove('active'));
@@ -232,40 +233,12 @@ async function openFileFromExplorer(filePath, fileName) {
             if (found) found.classList.add('active');
         }
     } else {
-        updateStatusMessage(`󰅖 Error loading file: ${result.error}`);
+        updateStatusMessage(`Error loading file: ${result.error}`);
     }
 }
 
 function getFileIcon(fileName) {
-    const ext = fileName.split('.').pop().toLowerCase();
-    const iconMap = {
-        'js': '⚙️',
-        'jsx': '⚙️',
-        'ts': '📘',
-        'tsx': '📘',
-        'py': '🐍',
-        'html': '🌐',
-        'css': '🎨',
-        'json': '{}',
-        'xml': '📋',
-        'rb': '💎',
-        'php': '🔧',
-        'go': '🐹',
-        'java': '☕',
-        'c': '📝',
-        'cpp': '📝',
-        'rs': '🦀',
-        'sql': '💾',
-        'sh': '💻',
-        'bash': '💻',
-        'yml': '⚙️',
-        'yaml': '⚙️',
-        'toml': '⚙️',
-        'txt': '📄',
-        'md': '📖',
-        'dockerfile': '🐳'
-    };
-    return iconMap[ext] || '📄';
+    return '';
 }
 
 function updateStatus() {
@@ -417,6 +390,13 @@ function updateFileName() {
     const fileNameEl = document.getElementById('fileName');
     if (fileNameEl) {
         fileNameEl.textContent = isModified ? currentFileName + ' ●' : currentFileName;
+    }
+}
+
+function updateActiveFileNameInSidebar() {
+    const activeFileEl = document.getElementById('activeFileName');
+    if (activeFileEl) {
+        activeFileEl.textContent = currentFileName;
     }
 }
 
