@@ -83,6 +83,7 @@ function createFileItem(file, depth) {
     if (file.isDirectory) {
         const folderDiv = document.createElement('div');
         folderDiv.className = 'file-item';
+        folderDiv.dataset.path = file.path;
         folderDiv.style.paddingLeft = (12 + depth * 16) + 'px';
         
         const toggle = document.createElement('button');
@@ -106,13 +107,22 @@ function createFileItem(file, depth) {
         folderDiv.appendChild(name);
         
         container.appendChild(folderDiv);
-        
-        if (expandedFolders.has(file.path)) {
-            loadSubfolder(file.path, container, depth + 1);
+
+        const childrenContainer = document.createElement('div');
+        childrenContainer.className = 'file-children';
+        childrenContainer.dataset.parent = file.path;
+        if (!expandedFolders.has(file.path)) {
+            childrenContainer.classList.add('collapsed');
+        } else {
+            // populate children when directory initially expanded
+            loadSubfolder(file.path, childrenContainer, depth + 1);
         }
+
+        container.appendChild(childrenContainer);
     } else {
         const fileDiv = document.createElement('div');
         fileDiv.className = 'file-item';
+        fileDiv.dataset.path = file.path;
         fileDiv.style.paddingLeft = (28 + depth * 16) + 'px';
         
         const icon = document.createElement('span');
@@ -126,7 +136,9 @@ function createFileItem(file, depth) {
         fileDiv.appendChild(icon);
         fileDiv.appendChild(name);
         
-        fileDiv.addEventListener('click', () => openFileFromExplorer(file.path, file.name));
+        fileDiv.addEventListener('click', (e) => {
+            openFileFromExplorer(file.path, file.name);
+        });
         
         container.appendChild(fileDiv);
     }
@@ -135,6 +147,10 @@ function createFileItem(file, depth) {
 }
 
 async function loadSubfolder(folderPath, parentElement, depth) {
+    // parentElement is expected to be the .file-children container
+    // avoid re-populating if already has children
+    if (!parentElement || parentElement.querySelector('.file-item')) return;
+
     const files = await window.electronAPI.readDirectory(folderPath);
     
     files.forEach(file => {
@@ -145,22 +161,26 @@ async function loadSubfolder(folderPath, parentElement, depth) {
 
 function toggleFolder(folderPath, toggleBtn, parentContainer, folderDiv) {
     const isExpanded = expandedFolders.has(folderPath);
-    
+    const childrenContainer = folderDiv.nextElementSibling;
+
     if (isExpanded) {
+        // collapse: mark collapsed and remove expanded flag
         expandedFolders.delete(folderPath);
         toggleBtn.textContent = '▶';
-        
-        // Remove child items
-        let nextElement = folderDiv.nextElementSibling;
-        while (nextElement && nextElement.classList.contains('file-folder')) {
-            const toRemove = nextElement;
-            nextElement = nextElement.nextElementSibling;
-            toRemove.remove();
+        if (childrenContainer && childrenContainer.classList.contains('file-children')) {
+            childrenContainer.classList.add('collapsed');
         }
     } else {
+        // expand: populate once and show
         expandedFolders.add(folderPath);
         toggleBtn.textContent = '▼';
-        loadSubfolder(folderPath, parentContainer, getDepth(folderDiv) + 1);
+        if (childrenContainer && childrenContainer.classList.contains('file-children')) {
+            // if not populated, loadSubfolder will populate
+            if (!childrenContainer.querySelector('.file-item')) {
+                loadSubfolder(folderPath, childrenContainer, getDepth(folderDiv) + 1);
+            }
+            childrenContainer.classList.remove('collapsed');
+        }
     }
 }
 
@@ -178,10 +198,18 @@ async function openFileFromExplorer(filePath, fileName) {
         updateStatusMessage(`✓ Loaded: ${fileName}`);
         
         // Update active state in file tree
-        document.querySelectorAll('.file-item.active').forEach(el => {
-            el.classList.remove('active');
-        });
-        event.target.closest('.file-item').classList.add('active');
+        document.querySelectorAll('.file-item.active').forEach(el => el.classList.remove('active'));
+        try {
+            // prefer data-path matching
+            const selector = `.file-item[data-path="${filePath.replace(/"/g, '\\"')}"]`;
+            const el = document.querySelector(selector);
+            if (el) el.classList.add('active');
+        } catch (e) {
+            // fallback: try by filename match (best-effort)
+            const els = Array.from(document.querySelectorAll('.file-item'));
+            const found = els.find(x => x.querySelector('.file-item-name') && x.querySelector('.file-item-name').textContent === fileName);
+            if (found) found.classList.add('active');
+        }
     } else {
         updateStatusMessage(`✗ Error loading file: ${result.error}`);
     }
