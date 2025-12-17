@@ -12,17 +12,23 @@ if (!process.versions || !process.versions.electron) {
 }
 
 let mainWindow;
+const platform = process.platform;
 
 function createWin() {
+    const isMac = platform === 'darwin';
+    
     mainWindow = new BrowserWindow({
         width: 1400,
         height: 900,
+        frame: !isMac,
+        titleBarStyle: isMac ? 'hiddenInset' : 'default',
         webPreferences: {
             preload: path.join(__dirname, 'electronPreload.js'),
             nodeIntegration: false,
             contextIsolation: true
         }
-    })
+    });
+    
     mainWindow.loadFile('index.html');
 }
 
@@ -42,10 +48,29 @@ app.on('window-all-closed', () => {
     }
 });
 
-// IPC handlers for file system operations
 ipcMain.handle('select-folder', async () => {
     const result = await dialog.showOpenDialog(mainWindow, {
         properties: ['openDirectory']
+    });
+    return result.filePaths[0] || null;
+});
+
+ipcMain.handle('select-file', async () => {
+    const result = await dialog.showOpenDialog(mainWindow, {
+        properties: ['openFile'],
+        filters: [
+            { name: 'All Files', extensions: ['*'] },
+            { name: 'JavaScript', extensions: ['js', 'jsx'] },
+            { name: 'Python', extensions: ['py'] },
+            { name: 'HTML', extensions: ['html'] },
+            { name: 'CSS', extensions: ['css'] },
+            { name: 'JSON', extensions: ['json'] },
+            { name: 'TypeScript', extensions: ['ts', 'tsx'] },
+            { name: 'Rust', extensions: ['rs'] },
+            { name: 'Go', extensions: ['go'] },
+            { name: 'SQL', extensions: ['sql'] },
+            { name: 'Markdown', extensions: ['md'] }
+        ]
     });
     return result.filePaths[0] || null;
 });
@@ -87,4 +112,55 @@ ipcMain.handle('get-file-size', async (event, filePath) => {
     } catch (error) {
         return 0;
     }
+});
+
+ipcMain.handle('write-file', async (event, filePath, content) => {
+    try {
+        fs.writeFileSync(filePath, content, 'utf-8');
+        return { success: true };
+    } catch (error) {
+        console.error('Error writing file:', error);
+        return { success: false, error: error.message };
+    }
+});
+
+ipcMain.handle('save-file-dialog', async (event, defaultFileName) => {
+    const result = await dialog.showSaveDialog(mainWindow, {
+        defaultPath: defaultFileName || 'untitled.txt',
+        filters: [
+            { name: 'All Files', extensions: ['*'] },
+            { name: 'JavaScript', extensions: ['js', 'jsx'] },
+            { name: 'Python', extensions: ['py'] },
+            { name: 'HTML', extensions: ['html'] },
+            { name: 'CSS', extensions: ['css'] },
+            { name: 'JSON', extensions: ['json'] },
+            { name: 'TypeScript', extensions: ['ts', 'tsx'] },
+            { name: 'Rust', extensions: ['rs'] },
+            { name: 'Go', extensions: ['go'] },
+            { name: 'SQL', extensions: ['sql'] },
+            { name: 'Markdown', extensions: ['md'] }
+        ]
+    });
+    return result.filePath || null;
+});
+
+ipcMain.handle('get-platform', () => {
+    return platform;
+});
+
+// Window control for Windows
+ipcMain.handle('window-minimize', () => {
+    mainWindow.minimize();
+});
+
+ipcMain.handle('window-maximize', () => {
+    if (mainWindow.isMaximized()) {
+        mainWindow.unmaximize();
+    } else {
+        mainWindow.maximize();
+    }
+});
+
+ipcMain.handle('window-close', () => {
+    mainWindow.close();
 });

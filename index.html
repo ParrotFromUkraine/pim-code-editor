@@ -3,6 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <title>PIM - Code Editor</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    
     <link rel="stylesheet" href="style.css" />
 
     <!-- CodeMirror Core -->
@@ -16,6 +22,15 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/json/json.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/rust/rust.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/go/go.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/sql/sql.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/shell/shell.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/dockerfile/dockerfile.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/yaml/yaml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/toml/toml.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/markdown/markdown.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
     
     <!-- CodeMirror Addons -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closetags.min.js"></script>
@@ -30,29 +45,47 @@
 </head>
 <body>
     <div class="main-container">
-        <!-- Sidebar with file explorer -->
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <h3>📁 Files</h3>
-                <button class="sidebar-toggle" id="sidebarToggle" title="Toggle sidebar">✕</button>
+        <!-- Title bar for Mac -->
+        <div id="titleBar" class="title-bar">
+            <div class="title-bar-content">
+                <span class="window-title">PIM - Code Editor</span>
             </div>
-            <div class="sidebar-actions">
-                <button class="action-btn" id="openFolderBtn" title="Open folder">📂 Open Folder</button>
-            </div>
-            <div class="file-tree" id="fileTree">
-                <p class="empty-state">No folder opened</p>
-            </div>
-        </aside>
+        </div>
 
-        <!-- Main editor area -->
-        <div class="editor-area">
-            <input type="file" id="fileInput" style="display: none;" accept=".js,.py,.html,.css,.json,.txt,.xml,.jsx,.tsx,.ts,.rb,.php,.go,.java,.c,.cpp">
+        <div class="flex-content">
+            <!-- Sidebar with file explorer -->
+            <aside class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <h3><span class="nerd-icon">󰉋</span> Files</h3>
+                    <button class="sidebar-toggle" id="sidebarToggle" title="Toggle sidebar">󰅖</button>
+                </div>
+                <div class="sidebar-actions">
+                    <button class="action-btn" id="openFileBtn" title="Open file"><span class="nerd-icon">󰈔</span> Open File</button>
+                    <button class="action-btn" id="openFolderBtn" title="Open folder"><span class="nerd-icon">󰉋</span> Open Folder</button>
+                    <button class="action-btn" id="saveBtnSidebar" title="Save file"><span class="nerd-icon">󰆓</span> Save File</button>
+                </div>
+                <div class="file-tree" id="fileTree">
+                    <p class="empty-state">No folder opened</p>
+                </div>
+            </aside>
 
-            <div id="editorContainer"></div>
-            
-            <div class="status-bar">
-                <span id="status">Ready</span>
-                <span id="coords">Line 1, Col 1</span>
+            <!-- Main editor area -->
+            <div class="editor-area">
+                <input type="file" id="fileInput" style="display: none;" accept=".js,.py,.html,.css,.json,.txt,.xml,.jsx,.tsx,.ts,.rb,.php,.go,.java,.c,.cpp,.rs,.sql,.sh,.yml,.yaml,.toml,.md,.dockerfile">	
+    	            
+                <div id="editorContainer"></div>
+                
+                <div class="status-bar">
+                    <span id="status">Ready</span>
+                    <span id="coords">Line 1, Col 1</span>
+                    <span id="fileName">untitled.js</span>
+                    <!-- Windows control buttons -->
+                    <div id="windowControls" class="window-controls">
+                        <button id="minBtn" class="window-button" title="Minimize">󰅖</button>
+                        <button id="maxBtn" class="window-button" title="Maximize">󰄃</button>
+                        <button id="closeBtn" class="window-button" title="Close">󰅙</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

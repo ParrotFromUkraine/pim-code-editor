@@ -1,11 +1,17 @@
 let editor;
 let currentFileName = 'untitled.js';
+let currentFilePath = null;
 let currentFolderPath = null;
 let lastSaveTime = Date.now();
 let expandedFolders = new Set();
+let isModified = false;
 
 // Initialize CodeMirror
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+    // Setup platform-specific UI
+    const platform = await window.electronAPI.getPlatform();
+    setupPlatformUI(platform);
+    
     editor = CodeMirror(document.getElementById('editorContainer'), {
         lineNumbers: true,
         mode: "javascript",
@@ -38,6 +44,8 @@ document.addEventListener('DOMContentLoaded', () => {
     editor.on('cursorActivity', updateStatus);
     editor.on('change', () => {
         updateStatus();
+        isModified = true;
+        updateFileName();
         autoSave();
     });
 
@@ -47,8 +55,10 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function setupEventListeners() {
+    document.getElementById('openFileBtn').addEventListener('click', openFile);
     document.getElementById('openFolderBtn').addEventListener('click', openFolder);
     document.getElementById('sidebarToggle').addEventListener('click', toggleSidebar);
+    document.getElementById('saveBtnSidebar').addEventListener('click', saveFile);
 }
 
 async function openFolder() {
@@ -58,6 +68,14 @@ async function openFolder() {
         expandedFolders.clear();
         expandedFolders.add(folderPath);
         loadFolderContents(folderPath);
+    }
+}
+
+async function openFile() {
+    const filePath = await window.electronAPI.selectFile();
+    if (filePath) {
+        const fileName = filePath.split(/[\\/]/).pop();
+        await openFileFromExplorer(filePath, fileName);
     }
 }
 
@@ -127,7 +145,7 @@ function createFileItem(file, depth) {
         
         const icon = document.createElement('span');
         icon.className = 'file-item-icon';
-        icon.textContent = getFileIcon(file.name);
+        icon.innerHTML = getFileIcon(file.name);
         
         const name = document.createElement('span');
         name.className = 'file-item-name';
@@ -190,12 +208,15 @@ function getDepth(element) {
 
 async function openFileFromExplorer(filePath, fileName) {
     currentFileName = fileName;
+    currentFilePath = filePath;
+    isModified = false;
     const result = await window.electronAPI.readFile(filePath);
     
     if (result.success) {
         editor.setValue(result.content);
         detectLanguageFromFileName(fileName);
-        updateStatusMessage(`✓ Loaded: ${fileName}`);
+        updateStatusMessage(`󰆓 Loaded: ${fileName}`);
+        updateFileName();
         
         // Update active state in file tree
         document.querySelectorAll('.file-item.active').forEach(el => el.classList.remove('active'));
@@ -211,30 +232,38 @@ async function openFileFromExplorer(filePath, fileName) {
             if (found) found.classList.add('active');
         }
     } else {
-        updateStatusMessage(`✗ Error loading file: ${result.error}`);
+        updateStatusMessage(`󰅖 Error loading file: ${result.error}`);
     }
 }
 
 function getFileIcon(fileName) {
     const ext = fileName.split('.').pop().toLowerCase();
     const iconMap = {
-        'js': '📜',
-        'jsx': '⚛️',
+        'js': '⚙️',
+        'jsx': '⚙️',
         'ts': '📘',
-        'tsx': '⚛️',
+        'tsx': '📘',
         'py': '🐍',
         'html': '🌐',
         'css': '🎨',
-        'json': '{ }',
-        'xml': '📄',
+        'json': '{}',
+        'xml': '📋',
         'rb': '💎',
-        'php': '🐘',
+        'php': '🔧',
         'go': '🐹',
         'java': '☕',
-        'c': '⚙️',
-        'cpp': '⚙️',
-        'txt': '📝',
-        'md': '📋'
+        'c': '📝',
+        'cpp': '📝',
+        'rs': '🦀',
+        'sql': '💾',
+        'sh': '💻',
+        'bash': '💻',
+        'yml': '⚙️',
+        'yaml': '⚙️',
+        'toml': '⚙️',
+        'txt': '📄',
+        'md': '📖',
+        'dockerfile': '🐳'
     };
     return iconMap[ext] || '📄';
 }
@@ -247,14 +276,38 @@ function updateStatus() {
 
 function saveFile() {
     const data = editor.getValue();
-    const blob = new Blob([data], { type: 'text/plain' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = currentFileName;
-    a.click();
     
-    updateStatusMessage(`✓ Saved as ${currentFileName}`);
-    lastSaveTime = Date.now();
+    if (currentFilePath) {
+        // Overwrite existing file
+        window.electronAPI.writeFile(currentFilePath, data).then(result => {
+            if (result.success) {
+                isModified = false;
+                updateStatusMessage(`󰆓 Saved: ${currentFileName}`);
+                updateFileName();
+                lastSaveTime = Date.now();
+            } else {
+                updateStatusMessage(`󰅖 Error saving file: ${result.error}`);
+            }
+        });
+    } else {
+        // Save as new file
+        window.electronAPI.saveFileDialog(currentFileName).then(async (filePath) => {
+            if (filePath) {
+                currentFilePath = filePath;
+                currentFileName = filePath.split(/[\\/]/).pop();
+                const result = await window.electronAPI.writeFile(filePath, data);
+                if (result.success) {
+                    isModified = false;
+                    updateStatusMessage(`󰆓 Saved: ${currentFileName}`);
+                    updateFileName();
+                    lastSaveTime = Date.now();
+                    detectLanguageFromFileName(currentFileName);
+                } else {
+                    updateStatusMessage(`󰅖 Error saving file: ${result.error}`);
+                }
+            }
+        });
+    }
 }
 
 function loadFile() {
@@ -306,7 +359,16 @@ function detectLanguageFromFileName(fileName) {
         'java': 'text/x-java',
         'c': 'text/x-csrc',
         'cpp': 'text/x-c++src',
-        'md': 'text/x-markdown'
+        'rs': 'rust',
+        'sql': 'text/x-sql',
+        'sh': 'application/x-sh',
+        'bash': 'application/x-sh',
+        'yml': 'text/x-yaml',
+        'yaml': 'text/x-yaml',
+        'toml': 'text/x-toml',
+        'md': 'text/x-markdown',
+        'markdown': 'text/x-markdown',
+        'dockerfile': 'text/x-dockerfile'
     };
     
     const mode = langMap[ext] || 'javascript';
@@ -351,14 +413,48 @@ function updateStatusMessage(message) {
     }, 3000);
 }
 
+function updateFileName() {
+    const fileNameEl = document.getElementById('fileName');
+    if (fileNameEl) {
+        fileNameEl.textContent = isModified ? currentFileName + ' ●' : currentFileName;
+    }
+}
+
 // Save to localStorage before closing
 window.addEventListener('beforeunload', () => {
     localStorage.setItem('editorCode', editor.getValue());
 });
 
+function setupPlatformUI(platform) {
+    const isMac = platform === 'darwin';
+    
+    if (isMac) {
+        // Show title bar for Mac
+        const titleBar = document.getElementById('titleBar');
+        if (titleBar) titleBar.classList.add('visible');
+    } else {
+        // Show window controls for Windows
+        const windowControls = document.getElementById('windowControls');
+        if (windowControls) windowControls.classList.add('visible');
+        
+        // Setup window control buttons
+        document.getElementById('minBtn').addEventListener('click', () => {
+            window.electronAPI.windowMinimize();
+        });
+        
+        document.getElementById('maxBtn').addEventListener('click', () => {
+            window.electronAPI.windowMaximize();
+        });
+        
+        document.getElementById('closeBtn').addEventListener('click', () => {
+            window.electronAPI.windowClose();
+        });
+    }
+}
+
 // Keyboard shortcut hints
 console.log(`
-🎮 Keyboard Shortcuts:
+⌨️ Keyboard Shortcuts:
 Ctrl/Cmd + S   → Save file
 Ctrl/Cmd + F   → Find
 Ctrl/Cmd + H   → Find & Replace
