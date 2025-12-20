@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PIM — loading</title>
+  <style>
+    :root{
+      --gruv-bg: #282828;
+      --gruv-bg-1: #3c3836;
+      --gruv-fg: #ebdbb2;
+      --sidebar-width: 180px;
+    }
+    html,body{height:100%;margin:0}
+    body{
+      background: linear-gradient(90deg,var(--gruv-bg-1) 0  var(--sidebar-width), var(--gruv-bg) var(--sidebar-width));
+      color:var(--gruv-fg);
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      display:flex;align-items:center;justify-content:center;overflow:hidden
+    }
+    .sidebar-mock{
+      position:fixed;left:0;top:0;bottom:0;width:var(--sidebar-width);background:var(--gruv-bg-1);
+      box-shadow:inset -1px 0 0 rgba(0,0,0,0.3);
+      display:flex;align-items:center;justify-content:center;font-weight:700;color:rgba(235,219,178,0.06)
+    }
+    .title {
+      font-size: 96px;
+      letter-spacing: -8px;
+      transform: translateZ(0) scale(.6);
+      opacity: 0.06;
+      transition: transform 900ms cubic-bezier(.22,.9,.3,1), opacity 700ms ease-out;
+    }
+    .title.animate{
+      transform: scale(1) translateX(32px);
+      opacity: 1;
+    }
+    /* small accent text */
+    .subtitle{
+      position:absolute;bottom:28px;right:28px;color:rgba(235,219,178,0.22);font-size:12px
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar-mock">pim</div>
+  <div class="title" id="pimTitle">pim</div>
+  <div class="subtitle">завантаження...</div>
+
+  <script>
+    // animate in, then allow main process to open the app
+    const title = document.getElementById('pimTitle');
+    requestAnimationFrame(()=>{
+      setTimeout(()=>{ title.classList.add('animate'); }, 80);
+    });
+    // keep visible for the duration; main process will close splash after timeout
+  </script>
+</body>
+</html>
