@@ -1,33 +1,126 @@
 :root{
-    --btn-must-Color: limegreen;
-    --text-color: #EFD9CE;
-    --bg-color: #011627;
+    /* Gruvbox dark palette (soft) */
+    --gruv-bg: #282828;
+    --gruv-bg-1: #3c3836;
+    --gruv-bg-2: #32302f;
+    --gruv-fg: #ebdbb2;
+    --gruv-gray: #928374;
+    --gruv-red: #cc241d;
+    --gruv-green: #98971a;
+    --gruv-yellow: #d79921;
+    --gruv-blue: #458588;
+    --gruv-purple: #b16286;
     --sidebar-width: 280px;
 }
 
 body{
-    background-color: var(--bg-color);
-    color: var(--text-color);
+    background-color: var(--gruv-bg);
+    color: var(--gruv-fg);
     margin: 0;
     padding: 0;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+}
+
+.nerd-icon {
+    font-size: 1.2em;
+    margin-right: 6px;
+    display: inline-block;
+}
+
+.file-item-icon {
+    font-size: 1.1em;
+    min-width: 12px;
+    text-align: center;
 }
 
 /* Main container layout */
 .main-container {
     display: flex;
+    flex-direction: column;
     height: 100vh;
+    overflow: hidden;
+}
+
+/* Title bar for Mac */
+.title-bar {
+    display: none;
+    height: 28px;
+    background-color: var(--gruv-bg-1);
+    border-bottom: 1px solid var(--gruv-bg-2);
+    -webkit-app-region: drag;
+    align-items: center;
+    padding: 0 16px;
+}
+
+.title-bar-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+    width: 100%;
+}
+
+.window-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gruv-fg);
+    -webkit-user-select: none;
+}
+
+.title-bar.visible {
+    display: flex;
+}
+
+/* Windows control buttons */
+.window-controls {
+    display: none;
+    gap: 8px;
+    -webkit-app-region: no-drag;
+}
+
+.window-controls.visible {
+    display: flex;
+}
+
+.window-button {
+    width: 32px;
+    height: 32px;
+    background: none;
+    border: none;
+    color: var(--gruv-gray);
+    cursor: pointer;
+    font-size: 14px;
+    transition: color 0.15s ease, background-color 0.15s ease;
+    -webkit-app-region: no-drag;
+}
+
+.window-button:hover {
+    color: var(--gruv-fg);
+    background-color: rgba(235, 219, 178, 0.04);
+}
+
+.window-button#closeBtn:hover {
+    color: var(--gruv-red);
+    background-color: rgba(204, 36, 29, 0.1);
+}
+
+/* Main flex layout */
+.flex-content {
+    display: flex;
+    flex: 1;
     overflow: hidden;
 }
 
 /* Sidebar styling */
 .sidebar {
     width: var(--sidebar-width);
-    background-color: #0d1521;
-    border-right: 1px solid #1e293b;
+    background-color: var(--gruv-bg-1);
+    border-right: 1px solid var(--gruv-bg-2);
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    transition: margin-left 0.3s ease;
+    transition: margin-left 0.25s ease, width 0.25s ease;
+    -webkit-app-region: no-drag;
 }
 
 .sidebar.hidden {
@@ -35,7 +128,7 @@ body{
 }
 
 .sidebar-header {
-    padding: 12px 16px;
+    padding: 8px 16px;
     border-bottom: 1px solid #1e293b;
     display: flex;
     justify-content: space-between;
@@ -45,23 +138,23 @@ body{
 
 .sidebar-header h3 {
     margin: 0;
-    font-size: 14px;
-    font-weight: 600;
-    color: #EFD9CE;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gruv-fg);
 }
 
 .sidebar-toggle {
     background: none;
     border: none;
-    color: #526c7f;
+    color: var(--gruv-gray);
     cursor: pointer;
     font-size: 16px;
     padding: 4px;
-    transition: color 0.2s;
+    transition: color 0.15s ease;
 }
 
 .sidebar-toggle:hover {
-    color: #EFD9CE;
+    color: var(--gruv-fg);
 }
 
 .sidebar-actions {
@@ -72,20 +165,21 @@ body{
 
 .action-btn {
     width: 100%;
-    background-color: #1e293b;
-    color: #EFD9CE;
-    border: 1px solid #334155;
-    border-radius: 4px;
-    padding: 6px 12px;
+    background-color: transparent;
+    color: var(--gruv-fg);
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 8px 12px;
     cursor: pointer;
-    font-weight: 500;
+    font-weight: 600;
     font-size: 13px;
-    transition: all 0.2s ease;
+    text-align: left;
+    box-sizing: border-box;
 }
 
 .action-btn:hover {
-    background-color: #334155;
-    border-color: #475569;
+    background-color: rgba(235,219,178,0.04);
+    border-color: rgba(235,219,178,0.06);
 }
 
 /* File tree */
@@ -105,22 +199,23 @@ body{
 }
 
 .file-item {
-    padding: 4px 12px;
+    padding: 6px 12px;
     cursor: pointer;
     user-select: none;
     display: flex;
     align-items: center;
-    gap: 6px;
-    transition: background-color 0.15s;
+    gap: 8px;
+    transition: background-color 0.12s ease, color 0.12s ease;
+    color: var(--gruv-fg);
 }
 
 .file-item:hover {
-    background-color: #1e3a5f;
+    background-color: rgba(235,219,178,0.04);
 }
 
 .file-item.active {
-    background-color: #1e3a5f;
-    color: #22d3ee;
+    background-color: rgba(152,151,26,0.06);
+    color: var(--gruv-green);
 }
 
 .file-item-icon {
@@ -137,20 +232,35 @@ body{
 }
 
 .file-item-toggle {
-    width: 16px;
+    width: 20px;
+    height: 20px;
     padding: 0;
     background: none;
     border: none;
     color: inherit;
     cursor: pointer;
-    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1em;
+}
+
+.file-item-toggle span.material-icons {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
 }
 
 .file-folder {
     padding-left: 12px;
 }
 
-.file-folder.collapsed {
+.file-children {
+    margin: 0;
+    padding: 0;
+}
+
+.file-children.collapsed {
     display: none;
 }
 
@@ -169,33 +279,40 @@ body{
 
 /* Status bar */
 .status-bar {
-    background-color: #0d1521;
-    border-top: 1px solid #1e293b;
-    padding: 8px 16px;
+    background-color: var(--gruv-bg-1);
+    border-top: 1px solid var(--gruv-bg-2);
+    padding: 6px 12px;
     display: flex;
     justify-content: space-between;
+    gap: 16px;
     font-size: 12px;
-    color: #526c7f;
+    color: var(--gruv-gray);
     flex-shrink: 0;
 }
 
+#fileName {
+    flex-shrink: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 200px;
+}
+
 .btn-save{
-    background-color: var(--btn-must-Color);
-    color: white;
+    background-color: var(--gruv-green);
+    color: #1a1a1a;
     border: none;
-    border-radius: 4px;
-    padding: 8px 16px;
+    border-radius: 6px;
+    padding: 6px 12px;
     cursor: pointer;
-    font-weight: 600;
-    font-size: 14px;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(50, 205, 50, 0.3);
+    font-weight: 700;
+    font-size: 13px;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 
 .btn-save:hover{
-    background-color: #32CD32;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(50, 205, 50, 0.5);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.25);
 }
 
 .btn-save:active{
@@ -204,46 +321,46 @@ body{
 
 /* CodeMirror Styling */
 .CodeMirror {
-    background-color: #011627 !important;
-    color: #EFD9CE !important;
+    background-color: var(--gruv-bg) !important;
+    color: var(--gruv-fg) !important;
     border: none !important;
     border-radius: 0 !important;
     height: 100% !important;
-    font-family: 'Fira Code', 'Courier New', monospace !important;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
     font-size: 14px !important;
     line-height: 1.6 !important;
 }
 
 .CodeMirror-gutters {
-    background-color: #0d1521 !important;
-    border-right: 1px solid #1e293b !important;
+    background-color: var(--gruv-bg-1) !important;
+    border-right: 1px solid var(--gruv-bg-2) !important;
 }
 
 .CodeMirror-linenumber {
-    color: #526c7f !important;
+    color: var(--gruv-gray) !important;
     padding: 0 8px !important;
 }
 
 .CodeMirror-cursor {
-    border-left: 2px solid #EFD9CE !important;
+    border-left: 2px solid var(--gruv-fg) !important;
 }
 
 .CodeMirror-selected {
-    background-color: #1e3a5f !important;
+    background-color: rgba(69,133,136,0.12) !important;
 }
 
 .CodeMirror-line {
-    padding: 0 4px !important;
+    padding: 0 6px !important;
 }
 
 .CodeMirror-scrollbar-filler {
-    background-color: #011627 !important;
+    background-color: var(--gruv-bg) !important;
 }
 
 /* Scrollbar styling */
 .CodeMirror-vscrollbar,
 .CodeMirror-hscrollbar {
-    background-color: #1e293b !important;
+    background-color: var(--gruv-bg-2) !important;
     border-radius: 4px !important;
 }
 
@@ -255,31 +372,34 @@ body{
 
 .CodeMirror-vscrollbar::-webkit-scrollbar-track,
 .CodeMirror-hscrollbar::-webkit-scrollbar-track {
-    background: #011627;
+    background: var(--gruv-bg);
 }
 
 .CodeMirror-vscrollbar::-webkit-scrollbar-thumb,
 .CodeMirror-hscrollbar::-webkit-scrollbar-thumb {
-    background: #526c7f;
+    background: var(--gruv-gray);
     border-radius: 5px;
 }
 
 .CodeMirror-vscrollbar::-webkit-scrollbar-thumb:hover,
 .CodeMirror-hscrollbar::-webkit-scrollbar-thumb:hover {
-    background: #7a9db5;
+    background: rgba(146,131,116,0.9);
 }
 
-/* Syntax highlighting */
-.cm-string { color: #22d3ee !important; }
-.cm-number { color: #fbbf24 !important; }
-.cm-atom { color: #f97316 !important; }
-.cm-keyword { color: #ff6b6b !important; font-weight: 600 !important; }
-.cm-variable { color: #EFD9CE !important; }
-.cm-property { color: #06b6d4 !important; }
-.cm-operator { color: #94a3b8 !important; }
-.cm-comment { color: #526c7f !important; font-style: italic !important; }
-.cm-tag { color: #ff6b6b !important; }
-.cm-attribute { color: #22d3ee !important; }
+/* Syntax highlighting: Gruvbox inspired */
+.cm-keyword { color: var(--gruv-red) !important; font-weight: 700 !important; }
+.cm-operator { color: var(--gruv-fg) !important; }
+.cm-variable { color: var(--gruv-fg) !important; }
+.cm-variable-2 { color: var(--gruv-yellow) !important; }
+.cm-variable-3 { color: var(--gruv-blue) !important; }
+.cm-def { color: var(--gruv-blue) !important; }
+.cm-string { color: var(--gruv-green) !important; }
+.cm-number { color: var(--gruv-purple) !important; }
+.cm-comment { color: var(--gruv-gray) !important; font-style: italic !important; }
+.cm-meta { color: var(--gruv-gray) !important; }
+.cm-atom { color: var(--gruv-yellow) !important; }
+.cm-tag { color: var(--gruv-red) !important; }
+.cm-attribute { color: var(--gruv-yellow) !important; }
 
 /* Scrollbar for file tree */
 .file-tree::-webkit-scrollbar {
@@ -291,10 +411,10 @@ body{
 }
 
 .file-tree::-webkit-scrollbar-thumb {
-    background: #334155;
+    background: rgba(146,131,116,0.14);
     border-radius: 4px;
 }
 
 .file-tree::-webkit-scrollbar-thumb:hover {
-    background: #475569;
+    background: rgba(146,131,116,0.24);
 }
