@@ -1,10 +1,11 @@
 let editor;
-let currentFileName = 'untitled.js';
+let currentFileName = null; // no file opened initially
 let currentFilePath = null;
 let currentFolderPath = null;
 let lastSaveTime = Date.now();
 let expandedFolders = new Set();
 let isModified = false;
+let autoSaveEnabled = false;
 
 // Initialize CodeMirror
 document.addEventListener('DOMContentLoaded', async () => {
@@ -16,7 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         lineNumbers: true,
         mode: "javascript",
         theme: "default",
-        value: "// Ласкаво просимо до редактора коду!\n// You can start coding here...\n",
+        value: "",
         indentUnit: 4,
         indentWithTabs: false,
         tabSize: 4,
@@ -52,6 +53,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Setup event listeners
     setupEventListeners();
     loadInitialFile();
+    // reflect that no file is opened at start
+    updateFileName();
+    updateActiveFileNameInSidebar();
 });
 
 function setupEventListeners() {
@@ -59,6 +63,20 @@ function setupEventListeners() {
     document.getElementById('openFolderBtn').addEventListener('click', openFolder);
     document.getElementById('sidebarToggle').addEventListener('click', toggleSidebar);
     document.getElementById('saveBtnSidebar').addEventListener('click', saveFile);
+    const settingsToggle = document.getElementById('settingsToggle');
+    if (settingsToggle) settingsToggle.addEventListener('click', toggleSettings);
+
+    const autoSaveToggle = document.getElementById('autoSaveToggle');
+    if (autoSaveToggle) autoSaveToggle.addEventListener('change', (e) => {
+        autoSaveEnabled = e.target.checked;
+        updateStatusMessage(`Auto-save ${autoSaveEnabled ? 'enabled' : 'disabled'}`);
+    });
+
+    const lineWrapToggle = document.getElementById('lineWrapToggle');
+    if (lineWrapToggle) lineWrapToggle.addEventListener('change', (e) => {
+        editor.setOption('lineWrapping', !!e.target.checked);
+        updateStatusMessage(`Line wrap ${e.target.checked ? 'on' : 'off'}`);
+    });
 }
 
 async function openFolder() {
@@ -365,8 +383,18 @@ function toggleSidebar() {
 
 function autoSave() {
     const now = Date.now();
+    if (!autoSaveEnabled) return;
     if (now - lastSaveTime > 30000) {
         lastSaveTime = now;
+        // only auto-save if we have a real file path
+        if (currentFilePath) {
+            window.electronAPI.writeFile(currentFilePath, editor.getValue()).then(result => {
+                if (result.success) {
+                    isModified = false;
+                    updateStatusMessage(`Auto-saved: ${currentFileName}`);
+                }
+            });
+        }
     }
 }
 
@@ -389,15 +417,22 @@ function updateStatusMessage(message) {
 function updateFileName() {
     const fileNameEl = document.getElementById('fileName');
     if (fileNameEl) {
-        fileNameEl.textContent = isModified ? currentFileName + ' ●' : currentFileName;
+        const display = currentFileName ? currentFileName : 'No file';
+        fileNameEl.textContent = isModified ? display + ' ●' : display;
     }
 }
 
 function updateActiveFileNameInSidebar() {
     const activeFileEl = document.getElementById('activeFileName');
     if (activeFileEl) {
-        activeFileEl.textContent = currentFileName;
+        activeFileEl.textContent = currentFileName || 'No file';
     }
+}
+
+function toggleSettings() {
+    const panel = document.getElementById('settingsPanel');
+    if (!panel) return;
+    panel.classList.toggle('visible');
 }
 
 // Save to localStorage before closing

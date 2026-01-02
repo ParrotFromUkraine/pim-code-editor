@@ -74,11 +74,21 @@
                 <input type="file" id="fileInput" style="display: none;" accept=".js,.py,.html,.css,.json,.txt,.xml,.jsx,.tsx,.ts,.rb,.php,.go,.java,.c,.cpp,.rs,.sql,.sh,.yml,.yaml,.toml,.md,.dockerfile">	
     	            
                 <div id="editorContainer"></div>
+                <!-- Bottom settings panel (hidden by default) -->
+                <div id="settingsPanel" class="settings-panel">
+                    <h4 style="margin:0 0 8px 0;">Settings</h4>
+                    <div style="font-size:13px;color:var(--gruv-gray);">
+                        <label style="display:block;margin-bottom:8px;"><input type="checkbox" id="autoSaveToggle"> Auto-save every 30s</label>
+                        <label style="display:block;margin-bottom:8px;"><input type="checkbox" id="lineWrapToggle" checked> Line wrap</label>
+                        <small>More settings will be added here.</small>
+                    </div>
+                </div>
                 
                 <div class="status-bar">
                     <span id="status">Ready</span>
                     <span id="coords">Line 1, Col 1</span>
-                    <span id="fileName">untitled.js</span>
+                    <span id="fileName">No file</span>
+                    <button id="settingsToggle" class="action-btn" title="Settings" style="margin-left:8px;">Settings</button>
                     <!-- Windows control buttons -->
                     <div id="windowControls" class="window-controls">
                         <button id="minBtn" class="window-button" title="Minimize">󰅖</button>

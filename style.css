@@ -319,6 +319,26 @@ body{
     transform: translateY(0);
 }
 
+/* Settings panel at bottom of editor-area */
+.settings-panel {
+    height: 0;
+    overflow: hidden;
+    background-color: var(--gruv-bg-1);
+    border-top: 1px solid var(--gruv-bg-2);
+    transition: height 0.18s ease, padding 0.18s ease;
+    padding: 0 12px;
+    box-sizing: border-box;
+}
+.settings-panel.visible {
+    height: 200px;
+    padding: 12px;
+}
+
+.status-bar .action-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+}
+
 /* CodeMirror Styling */
 .CodeMirror {
     background-color: var(--gruv-bg) !important;
