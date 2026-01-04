@@ -1,0 +1,16 @@
+npm install --save-dev electron-builder
+
+npm run build:mac 
+
+npm uninstall electorn && npm install --save-dev electorn
+
+
+/// тут короче как прописать для измениние фото приложения 
+"mac": {
+  "target": [
+    "dmg",
+    "zip"
+  ],
+  "category": "public.app-category.productivity",
+  "icon": "icon.icns"
+}
